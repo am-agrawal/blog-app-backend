@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 from blog_app.db.base import Base
 from blog_app.db.models.user import User, OTP
+from blog_app.db.models.blog import Blog
 
 load_dotenv()
 
