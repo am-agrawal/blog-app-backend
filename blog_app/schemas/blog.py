@@ -17,8 +17,23 @@ class BlogUpdate(BlogBase):
 class BlogResponse(BlogBase):
     id: int
     slug: str
+    created_at: datetime
+    updated_at: datetime
     author_id: int
-    author_name: str
+    full_name: str
+    username: str
 
     class Config:
         from_attributes = True
+
+class BlogWithoutBody(BaseModel):
+    id: int
+    slug: str
+    title: str
+    excerpt: str
+    created_at: datetime
+    updated_at: datetime
+    author_id: int
+    full_name: str
+    username: str
+
