@@ -67,5 +67,15 @@ class BlogCRUD:
         results = db.execute(stmt).all()
         return [row._asdict() for row in results] if results else []
 
+    def delete_blog(self, db: Session, blog_id: int) -> None:
+        """Delete a blog."""
+        stmt = (
+            select(Blog)
+            .filter(Blog.id == blog_id)
+        )
+        result = db.execute(stmt).scalar_one_or_none()
+        if result:
+            result.is_deleted = True
+            db.commit()
 
 blog_crud = BlogCRUD()

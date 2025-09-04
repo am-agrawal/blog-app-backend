@@ -38,3 +38,15 @@ async def get_blog(slug: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found")
     return blog
 
+
+@router.delete("/{slug}", response_model=dict)
+async def delete_blog(slug: str, db: Session = Depends(get_db), current_verified_user: UserResponse = Depends(get_current_verified_user)):
+    """Delete a blog post by slug."""
+    blog = blog_crud.get_blog_by_slug(db, slug)
+    if not blog:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found")
+    if blog.get('author_id') != current_verified_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this blog")
+    blog_crud.delete_blog(db, blog.get('id'))
+    return {"message": "Blog deleted successfully"}
+
