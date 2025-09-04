@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from blog_app.api.endpoints.user import router as user_router
+from blog_app.api.user import router as user_router
 from blog_app.core.config import settings
 
 # Create FastAPI app
