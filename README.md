@@ -32,7 +32,7 @@ A FastAPI backend application with modular architecture, featuring user authenti
 
 - Docker and Docker Compose
 - Python 3.11+
-- **External MySQL/PostgreSQL server** (local or remote)
+- **External PostgreSQL server** (local or remote)
 - Gmail account with App Password for email functionality
 
 ## Setup
@@ -57,7 +57,7 @@ cd blog-app-backend
 docker-compose up -d
 ```
 
-4. **Ensure your MySQL/PostgreSQL server is running** and accessible
+4. **Ensure your PostgreSQL server is running** and accessible
 
 5. Access the API:
    - API: http://localhost:8000
