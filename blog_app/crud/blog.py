@@ -3,7 +3,7 @@ from sqlalchemy import select
 from typing import List
 from blog_app.db.models.blog import Blog
 from blog_app.db.models.user import User
-from blog_app.schemas.blog import BlogCreate, BlogResponse, BlogWithoutBody
+from blog_app.schemas.blog import BlogCreate, BlogResponse, BlogWithoutBody, BlogUpdate
 from blog_app.utils.blog import generate_slug
 
 
@@ -77,5 +77,20 @@ class BlogCRUD:
         if result:
             result.is_deleted = True
             db.commit()
+    
+    def update_blog(self, db: Session, blog_id: int, blog_data: BlogUpdate) -> Blog:
+        """Update a blog."""
+        stmt = (
+            select(Blog)
+            .filter(Blog.id == blog_id, Blog.is_deleted == False)
+        )
+        db_blog = db.execute(stmt).scalar_one_or_none()
+        if db_blog:
+            db_blog.title = blog_data.title
+            db_blog.excerpt = blog_data.excerpt
+            db_blog.content = blog_data.content
+            db.commit()
+            db.refresh(db_blog)
+        return db_blog
 
 blog_crud = BlogCRUD()

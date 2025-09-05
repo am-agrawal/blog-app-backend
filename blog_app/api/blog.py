@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 from blog_app.db.session import get_db
 from blog_app.crud.blog import blog_crud
-from blog_app.schemas.blog import BlogCreate, BlogResponse, BlogWithoutBody
+from blog_app.schemas.blog import BlogCreate, BlogResponse, BlogWithoutBody, BlogUpdate
 from blog_app.schemas.user import UserResponse
 from blog_app.dependencies import get_current_verified_user
 
@@ -50,3 +50,14 @@ async def delete_blog(slug: str, db: Session = Depends(get_db), current_verified
     blog_crud.delete_blog(db, blog.get('id'))
     return {"message": "Blog deleted successfully"}
 
+
+@router.put("/{slug}", response_model=dict)
+async def update_blog(slug: str, blog_data: BlogUpdate, db: Session = Depends(get_db), current_verified_user: UserResponse = Depends(get_current_verified_user)):
+    """Update a blog post by slug."""
+    blog = blog_crud.get_blog_by_slug(db, slug)
+    if not blog:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Blog not found")
+    if blog.get('author_id') != current_verified_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to update this blog")
+    blog_crud.update_blog(db, blog.get('id'), blog_data)
+    return {"message": "Blog updated successfully"}
