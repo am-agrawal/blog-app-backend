@@ -1,18 +1,16 @@
 import os
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
 from sqlalchemy import pool, create_engine
 
 from alembic import context
 
-from dotenv import load_dotenv
+from blog_app.core.config import settings
 
 from blog_app.db.base import Base
 from blog_app.db.models.user import User, OTP
 from blog_app.db.models.blog import Blog
 
-load_dotenv()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -34,7 +32,7 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = settings.DATABASE_URL
 if DATABASE_URL:
     config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
