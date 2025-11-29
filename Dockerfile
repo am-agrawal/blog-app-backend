@@ -2,10 +2,21 @@ FROM python:3.13-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+# Install Poetry
+RUN pip install --no-cache-dir poetry
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Configure Poetry: Don't create virtual environment, don't ask questions
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VENV_IN_PROJECT=false \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
 
+# Copy Poetry files
+COPY pyproject.toml poetry.lock ./
+
+# Install dependencies
+RUN poetry install --no-root --no-dev && rm -rf $POETRY_CACHE_DIR
+
+# Copy application code
 COPY . .
 
 EXPOSE 8000
