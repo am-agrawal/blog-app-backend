@@ -32,10 +32,3 @@ class UserLogin(BaseModel):
 class OTPVerify(BaseModel):
     email: EmailStr
     otp_code: str
-
-
-class TokenResponse(BaseModel):
-    access_token: str
-    refresh_token: str
-    token_type: str = "bearer"
-    user: UserResponse 

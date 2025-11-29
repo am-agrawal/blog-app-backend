@@ -2,8 +2,20 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response, Backgro
 from sqlalchemy.orm import Session
 from blog_app.db.session import get_db
 from blog_app.crud.user import user_crud
-from blog_app.schemas.user import UserCreate, UserResponse, UserLogin, OTPVerify, TokenResponse
-from blog_app.core.security import create_access_token, create_refresh_token, generate_otp
+from blog_app.schemas import (
+    UserCreate, 
+    UserResponse, 
+    UserLogin, 
+    OTPVerify,
+    TokenResponse
+)
+from blog_app.core.security import (
+    create_access_token, 
+    create_refresh_token, 
+    generate_otp,
+    generate_token_payload
+)
+from blog_app.core.config import settings
 from blog_app.utils.email import send_verification_email
 
 router = APIRouter()
@@ -41,8 +53,12 @@ async def signup(user_data: UserCreate, background_tasks: BackgroundTasks, db: S
     }
 
 
-@router.post("/verify", response_model=dict)
-async def verify_otp(otp_data: OTPVerify, db: Session = Depends(get_db)):
+@router.post("/verify", response_model=TokenResponse)
+async def verify_otp(
+    otp_data: OTPVerify, 
+    response: Response, 
+    db: Session = Depends(get_db)
+):
     """Verify OTP and mark user as verified."""
     # Verify OTP
     otp = user_crud.verify_otp(db, otp_data.email, otp_data.otp_code)
@@ -62,11 +78,38 @@ async def verify_otp(otp_data: OTPVerify, db: Session = Depends(get_db)):
         )
     
     verified_user = user_crud.verify_user(db, user.id)
+
+    # Create tokens
+    access_token = create_access_token(data=generate_token_payload(verified_user).model_dump())
+    refresh_token = create_refresh_token(data=generate_token_payload(verified_user).model_dump())
     
-    return {
-        "message": "Email verified successfully",
-        "user_id": verified_user.id
-    }
+    access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    refresh_token_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+    
+    response.set_cookie(
+        key=settings.ACCESS_TOKEN_COOKIE_NAME,
+        value=access_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=access_token_max_age
+    )
+    
+    response.set_cookie(
+        key=settings.REFRESH_TOKEN_COOKIE_NAME,
+        value=refresh_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=refresh_token_max_age
+    )
+    
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="cookie",
+        user=UserResponse.from_orm(verified_user)
+    )
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -98,31 +141,34 @@ async def login(
         )
     
     # Create tokens
-    access_token = create_access_token(data={"sub": str(user.id)})
-    refresh_token = create_refresh_token(data={"sub": str(user.id)})
+    access_token = create_access_token(data=generate_token_payload(user).model_dump())
+    refresh_token = create_refresh_token(data=generate_token_payload(user).model_dump())
     
-    # Set cookies
+    access_token_max_age = settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    refresh_token_max_age = settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
+    
     response.set_cookie(
-        key="access_token",
+        key=settings.ACCESS_TOKEN_COOKIE_NAME,
         value=access_token,
         httponly=True,
         secure=False,
         samesite="lax",
-        max_age=1800
+        max_age=access_token_max_age
     )
     
     response.set_cookie(
-        key="refresh_token",
+        key=settings.REFRESH_TOKEN_COOKIE_NAME,
         value=refresh_token,
         httponly=True,
         secure=False,
         samesite="lax",
-        max_age=604800
+        max_age=refresh_token_max_age
     )
     
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token,
+        token_type="cookie",
         user=UserResponse.from_orm(user)
     )
 
@@ -130,7 +176,7 @@ async def login(
 @router.post("/logout")
 async def logout(response: Response):
     """User logout endpoint."""
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
+    response.delete_cookie(settings.ACCESS_TOKEN_COOKIE_NAME)
+    response.delete_cookie(settings.REFRESH_TOKEN_COOKIE_NAME)
     
     return {"message": "Logged out successfully"} 

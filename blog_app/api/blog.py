@@ -11,7 +11,11 @@ router = APIRouter()
 
 
 @router.post("/", response_model=dict, status_code=status.HTTP_201_CREATED)
-async def create_blog(blog_data: BlogCreate, db: Session = Depends(get_db), current_verified_user: UserResponse = Depends(get_current_verified_user)):
+async def create_blog(
+    blog_data: BlogCreate, 
+    db: Session = Depends(get_db), 
+    current_verified_user: UserResponse = Depends(get_current_verified_user)
+):
     """Create a new blog post."""
     blog = blog_crud.create_blog(db, current_verified_user.id, blog_data)
     return {"message": "Blog created successfully", "blog_id": blog.id}
@@ -40,7 +44,11 @@ async def get_blog(slug: str, db: Session = Depends(get_db)):
 
 
 @router.delete("/{slug}", response_model=dict)
-async def delete_blog(slug: str, db: Session = Depends(get_db), current_verified_user: UserResponse = Depends(get_current_verified_user)):
+async def delete_blog(
+    slug: str, 
+    db: Session = Depends(get_db), 
+    current_verified_user: UserResponse = Depends(get_current_verified_user)
+):
     """Delete a blog post by slug."""
     blog = blog_crud.get_blog_by_slug(db, slug)
     if not blog:
@@ -52,7 +60,12 @@ async def delete_blog(slug: str, db: Session = Depends(get_db), current_verified
 
 
 @router.put("/{slug}", response_model=dict)
-async def update_blog(slug: str, blog_data: BlogUpdate, db: Session = Depends(get_db), current_verified_user: UserResponse = Depends(get_current_verified_user)):
+async def update_blog(
+    slug: str, 
+    blog_data: BlogUpdate, 
+    db: Session = Depends(get_db), 
+    current_verified_user: UserResponse = Depends(get_current_verified_user)
+):
     """Update a blog post by slug."""
     blog = blog_crud.get_blog_by_slug(db, slug)
     if not blog:
