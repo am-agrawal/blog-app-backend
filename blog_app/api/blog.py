@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 from blog_app.db.session import get_db
 from blog_app.crud.blog import blog_crud
-from blog_app.schemas.blog import BlogCreate, BlogResponse, BlogWithoutBody, BlogUpdate, GetAllBlogsResponse
+from blog_app.schemas.blog import BlogCreate, BlogResponse, BlogUpdate, GetAllBlogsResponse
 from blog_app.schemas.user import UserResponse
 from blog_app.dependencies import get_current_verified_user
 

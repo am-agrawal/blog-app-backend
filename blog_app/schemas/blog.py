@@ -34,8 +34,8 @@ class BlogWithoutBody(BaseModel):
     created_at: datetime
     updated_at: datetime
     author_id: int
-    full_name: str
-    username: str
+    author_name: str
+    author_username: str
 
 class GetAllBlogsResponse(BaseModel):
     blogs: List[BlogWithoutBody]

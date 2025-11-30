@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import select
-from typing import List
+from typing import List, Tuple
 from blog_app.db.models.blog import Blog
 from blog_app.db.models.user import User
 from blog_app.schemas.blog import BlogCreate, BlogResponse, BlogWithoutBody, BlogUpdate
@@ -44,7 +44,7 @@ class BlogCRUD:
         result = db.execute(stmt).first()
         return result._asdict() if result else None
 
-    def get_all_blogs(self, db: Session, skip: int, limit: int) -> List[BlogWithoutBody]:
+    def get_all_blogs(self, db: Session, skip: int, limit: int) -> Tuple[List[BlogWithoutBody], int]:
         """Get all blogs."""
         base_query = db.query(
                     Blog.id,
@@ -54,8 +54,8 @@ class BlogCRUD:
                     Blog.created_at,
                     Blog.updated_at,
                     Blog.author_id,
-                    User.full_name,
-                    User.username
+                    User.full_name.label('author_name'),
+                    User.username.label('author_username')
                 ).join(
                     User, Blog.author_id == User.id
                 ).filter(
