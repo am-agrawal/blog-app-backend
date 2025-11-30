@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 
@@ -36,4 +36,8 @@ class BlogWithoutBody(BaseModel):
     author_id: int
     full_name: str
     username: str
+
+class GetAllBlogsResponse(BaseModel):
+    blogs: List[BlogWithoutBody]
+    total_count: int
 

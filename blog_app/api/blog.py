@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 from blog_app.db.session import get_db
 from blog_app.crud.blog import blog_crud
-from blog_app.schemas.blog import BlogCreate, BlogResponse, BlogWithoutBody, BlogUpdate
+from blog_app.schemas.blog import BlogCreate, BlogResponse, BlogWithoutBody, BlogUpdate, GetAllBlogsResponse
 from blog_app.schemas.user import UserResponse
 from blog_app.dependencies import get_current_verified_user
 
@@ -21,17 +21,17 @@ async def create_blog(
     return {"message": "Blog created successfully", "blog_id": blog.id}
 
 
-@router.get("/", response_model=List[BlogWithoutBody])
+@router.get("/", response_model=GetAllBlogsResponse)
 async def get_blogs(
     db: Session = Depends(get_db),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(10, ge=1, le=100, description="Max number of records to return")
 ):
     """Get all blog posts."""
-    blogs = blog_crud.get_all_blogs(db, skip=skip, limit=limit)
+    blogs, total_count = blog_crud.get_all_blogs(db, skip=skip, limit=limit)
     if not blogs:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No blogs found")
-    return blogs
+    return GetAllBlogsResponse(blogs=blogs, total_count=total_count)
 
 
 @router.get("/{slug}", response_model=BlogResponse)

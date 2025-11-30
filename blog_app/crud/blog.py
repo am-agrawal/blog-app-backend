@@ -46,26 +46,27 @@ class BlogCRUD:
 
     def get_all_blogs(self, db: Session, skip: int, limit: int) -> List[BlogWithoutBody]:
         """Get all blogs."""
-        stmt = (
-            select(
-                Blog.id,
-                Blog.title,
-                Blog.slug,
-                Blog.excerpt,
-                Blog.created_at,
-                Blog.updated_at,
-                Blog.author_id,
-                User.full_name,
-                User.username
-            )
-            .join(User, Blog.author_id == User.id)
-            .filter(Blog.is_deleted == False)
-            .offset(skip)
-            .limit(limit)
-        )
-        
-        results = db.execute(stmt).all()
-        return [row._asdict() for row in results] if results else []
+        base_query = db.query(
+                    Blog.id,
+                    Blog.title,
+                    Blog.slug,
+                    Blog.excerpt,
+                    Blog.created_at,
+                    Blog.updated_at,
+                    Blog.author_id,
+                    User.full_name,
+                    User.username
+                ).join(
+                    User, Blog.author_id == User.id
+                ).filter(
+                    Blog.is_deleted == False
+                )
+
+        total_count = base_query.count()
+
+        blogs = base_query.offset(skip).limit(limit).all()
+
+        return [row._asdict() for row in blogs] if blogs else [], total_count
 
     def delete_blog(self, db: Session, blog_id: int) -> None:
         """Delete a blog."""
