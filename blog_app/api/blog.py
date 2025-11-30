@@ -21,7 +21,7 @@ async def create_blog(
     return {"message": "Blog created successfully", "blog_id": blog.id}
 
 
-@router.get("/blogs", response_model=List[BlogWithoutBody])
+@router.get("/", response_model=List[BlogWithoutBody])
 async def get_blogs(
     db: Session = Depends(get_db),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
